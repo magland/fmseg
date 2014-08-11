@@ -12,6 +12,7 @@ public:
 	friend class FMSegViewPrivate;
 	FMSegView();
 	virtual ~FMSegView();
+	void setMedianFilterRadius(int rad);
 	void setArray(const Array2D &X);
 	void setMask(const Array2D &X);
 	void refresh();

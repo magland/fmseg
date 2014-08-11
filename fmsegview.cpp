@@ -10,6 +10,7 @@ class FMSegViewPrivate {
 public:
 	FMSegView *q;
 	Array2D m_array;
+	Array2D m_array_filtered;
 	Array2D m_mask;
 	Array2D m_preview_mask;
 	bool m_need_to_update_the_image;
@@ -25,7 +26,7 @@ public:
 	void on_mouse_click(QPoint index);
 	void on_mouse_move(QPoint index);
 	Array2D compute_mask_boundary(const Array2D &mask);
-	Array2D compute_median_filter(const Array2D &array);
+	Array2D compute_median_filter(const Array2D &array,int rad);
 };
 
 FMSegView::FMSegView() : QWidget()
@@ -49,7 +50,7 @@ void FMSegView::setArray(const Array2D &X) {
 	d->m_window_min=0;
 	d->m_window_max=X.max()*0.6;
 	d->m_need_to_update_the_image=true;
-	d->m_array=d->compute_median_filter(d->m_array);
+	d->m_array_filtered=d->compute_median_filter(d->m_array,d->m_median_filter_radius);
 	repaint();
 }
 void FMSegView::setMask(const Array2D &X) {
@@ -73,7 +74,7 @@ void FMSegView::paintEvent(QPaintEvent * event) {
 			d->m_the_image=QImage(d->m_array.N1(),d->m_array.N2(),QImage::Format_RGB32);
 			for (qint32 y=0; y<d->m_array.N2(); y++)			
 			for (qint32 x=0; x<d->m_array.N1(); x++) {
-				QColor col=d->get_color(d->m_array.getValue(x,y));
+				QColor col=d->get_color(d->m_array_filtered.getValue(x,y));
 				if (preview_mask_boundary.getValue(x,y)) {
 					col=qRgb(255,200,200);
 				}
@@ -143,13 +144,13 @@ QPoint FMSegViewPrivate::point_to_index(QPoint pt) {
 }
 void FMSegViewPrivate::on_mouse_click(QPoint index) {
 	float threshold=m_threshold;
-	seg_update_mask(m_array,m_mask,index,threshold);
+	seg_update_mask(m_array_filtered,m_mask,index,threshold);
 	q->refresh();
 }
 void FMSegViewPrivate::on_mouse_move(QPoint index) {
 	float threshold=m_threshold;
 	m_preview_mask=m_mask;
-	seg_update_mask(m_array,m_preview_mask,index,threshold);
+	seg_update_mask(m_array_filtered,m_preview_mask,index,threshold);
 	q->refresh();
 }
 Array2D FMSegViewPrivate::compute_mask_boundary(const Array2D &mask) {
@@ -170,13 +171,13 @@ Array2D FMSegViewPrivate::compute_mask_boundary(const Array2D &mask) {
 	}
 	return B;
 }
-Array2D FMSegViewPrivate::compute_median_filter(const Array2D &array) {
+Array2D FMSegViewPrivate::compute_median_filter(const Array2D &array,int radius) {
 	Array2D ret; ret.allocate(array.N1(),array.N2());
 	for (int y=0; y<array.N2(); y++)
 	for (int x=0; x<array.N1(); x++) {
 		QList<float> list;
-		for (int dy=-m_median_filter_radius; dy<=m_median_filter_radius; dy++)
-		for (int dx=-m_median_filter_radius; dx<=m_median_filter_radius; dx++) {
+		for (int dy=-radius; dy<=radius; dy++)
+		for (int dx=-radius; dx<=radius; dx++) {
 			list << array.getValue(x+dx,y+dy);
 		}
 		qSort(list);
@@ -193,4 +194,16 @@ void FMSegView::keyPressEvent(QKeyEvent *event) {
 		d->m_threshold-=10;
 		d->on_mouse_move(d->m_last_index);
 	}
+	else if (event->key()==Qt::Key_C) {
+		d->m_mask.allocate(d->m_array.N1(),d->m_array.N2());
+		refresh();
+	}
+	else {
+		qDebug()  << event->key();
+	}
+}
+void FMSegView::setMedianFilterRadius(int rad) {
+	d->m_median_filter_radius=rad;
+	d->m_array_filtered=d->compute_median_filter(d->m_array,d->m_median_filter_radius);
+	refresh();
 }
