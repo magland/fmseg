@@ -8,8 +8,8 @@ DESTDIR = ./
 
 CONFIG += qt release console
 
-HEADERS += fmsegview.h seg_update_mask.h fmsegwidget.h scanlistwidget.h
-SOURCES += main.cpp fmsegview.cpp seg_update_mask.cpp fmsegwidget.cpp scanlistwidget.cpp
+HEADERS += fmsegview.h seg_update_mask.h fmsegwidget.h fmsegwindow.h scanlistwidget.h
+SOURCES += main.cpp fmsegview.cpp seg_update_mask.cpp fmsegwidget.cpp fmsegwindow.cpp scanlistwidget.cpp
 FORMS +=
 
 # COMMON CODE ###################

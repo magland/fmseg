@@ -17,7 +17,7 @@ public:
 	QImage m_the_image;
 	QRect m_target_rect;
 	float m_window_min,m_window_max;
-	float m_threshold;
+	float m_selection_threshold;
 	int m_median_filter_radius;
 	QPoint m_last_index;
 	
@@ -33,7 +33,7 @@ FMSegView::FMSegView() : QWidget()
 {
 	d=new FMSegViewPrivate;
 	d->q=this;
-	d->m_threshold=100;
+	d->m_selection_threshold=100;
 	d->m_median_filter_radius=1;
 	d->m_need_to_update_the_image=false;
 	d->m_window_min=d->m_window_max=0;
@@ -47,16 +47,16 @@ FMSegView::~FMSegView()
 }
 void FMSegView::setArray(const Array2D &X) {
 	d->m_array=X;
-	d->m_window_min=0;
-	d->m_window_max=X.max()*0.6;
-	d->m_need_to_update_the_image=true;
+	if (d->m_window_max==0) {
+		d->m_window_min=0;
+		d->m_window_max=X.max()*0.6;
+	}
 	d->m_array_filtered=d->compute_median_filter(d->m_array,d->m_median_filter_radius);
-	repaint();
+	refresh();
 }
 void FMSegView::setMask(const Array2D &X) {
 	d->m_mask=X;
-	d->m_need_to_update_the_image=true;
-	repaint();
+	refresh();
 }
 void FMSegView::refresh() {
 	d->m_need_to_update_the_image=true;
@@ -143,12 +143,12 @@ QPoint FMSegViewPrivate::point_to_index(QPoint pt) {
 	return QPoint(retx,/*m_array.N2()-1-*/rety);
 }
 void FMSegViewPrivate::on_mouse_click(QPoint index) {
-	float threshold=m_threshold;
+	float threshold=m_selection_threshold;
 	seg_update_mask(m_array_filtered,m_mask,index,threshold);
 	q->refresh();
 }
 void FMSegViewPrivate::on_mouse_move(QPoint index) {
-	float threshold=m_threshold;
+	float threshold=m_selection_threshold;
 	m_preview_mask=m_mask;
 	seg_update_mask(m_array_filtered,m_preview_mask,index,threshold);
 	q->refresh();
@@ -187,11 +187,11 @@ Array2D FMSegViewPrivate::compute_median_filter(const Array2D &array,int radius)
 }
 void FMSegView::keyPressEvent(QKeyEvent *event) {
 	if (event->key()==61) { //plus
-		d->m_threshold+=10;
+		d->m_selection_threshold+=10;
 		d->on_mouse_move(d->m_last_index);
 	}
 	else if (event->key()==45) { //minus
-		d->m_threshold-=10;
+		d->m_selection_threshold-=10;
 		d->on_mouse_move(d->m_last_index);
 	}
 	else if (event->key()==Qt::Key_C) {
@@ -206,4 +206,16 @@ void FMSegView::setMedianFilterRadius(int rad) {
 	d->m_median_filter_radius=rad;
 	d->m_array_filtered=d->compute_median_filter(d->m_array,d->m_median_filter_radius);
 	refresh();
+}
+Array2D FMSegView::getMask() {
+	return d->m_mask;
+}
+void FMSegView::setWindowRange(float min,float max) {
+	d->m_window_min=min;
+	d->m_window_max=max;
+	refresh();
+}
+void FMSegView::setSelectionThreshold(float threshold) {
+	d->m_selection_threshold=threshold;
+	refresh();	
 }

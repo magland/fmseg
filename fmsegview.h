@@ -15,6 +15,9 @@ public:
 	void setMedianFilterRadius(int rad);
 	void setArray(const Array2D &X);
 	void setMask(const Array2D &X);
+	void setWindowRange(float min,float max);
+	void setSelectionThreshold(float threshold);
+	Array2D getMask();
 	void refresh();
 protected:
 	void paintEvent(QPaintEvent * event);

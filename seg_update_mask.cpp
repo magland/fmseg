@@ -52,13 +52,15 @@ Array2D compute_distance_map(const Array2D &X,int x0,int y0,int rad) {
 		}
 		pass++;
 	}
-	printf("%d passes\n",pass);
+	if (pass>=100) {
+		printf("%d passes\n",pass);
+	}
 	return Y;
 }
 
 
 void seg_update_mask(const Array2D &array,Array2D &mask,QPoint point,float threshold) {
-	Array2D DT=compute_distance_map(array,point.x(),point.y(),50);
+	Array2D DT=compute_distance_map(array,point.x(),point.y(),30);
 	for (int y=0; y<mask.N2(); y++)
 	for (int x=0; x<mask.N1(); x++) {
 		if ((DT.getValue(x,y))&&(DT.getValue(x,y)<=threshold)) {

@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QWidget>
 #include "fmsegwidget.h"
+#include "fmsegwindow.h"
 #include <math.h>
 #include "jniftiimage2.h"
 #include <QFileInfo>
@@ -27,6 +28,7 @@ int main(int argc, char *argv[])
 		if (!tmp.isEmpty()) args << tmp;
 	}
 	
+	/*
 	if (args.count()<1) {
 		X.allocate(256,256,3);
 		M.allocate(256,256,3);
@@ -58,9 +60,21 @@ int main(int argc, char *argv[])
 	W.setArray(X);
 	W.setMask(M);
 	W.refresh();
-	W.showNormal();
+	W.show();
 	W.resize(600,600);
+	W.move(100,100);
+	*/
+	
+	FMSegWindow WW;
+	WW.setInputPath("/home/magland/data/fetalmri/MR");
+	WW.setOutputPath("/home/magland/data/fetalmri/masks");
+	WW.refresh();
+	WW.show();
+	WW.resize(1000,600);
+	WW.move(200,200);
 
 	return app.exec();
 }
+
+
 

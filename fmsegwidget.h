@@ -12,6 +12,9 @@ public:
 	virtual ~FMSegWidget();
 	void setArray(const Array3D &X);
 	void setMask(const Array3D &X);
+	void setWindowRange(float min,float max);
+	void setSelectionThreshold(float threshold);
+	Array3D getMask();
 	void refresh();
 protected:
 	void resizeEvent( QResizeEvent * event );
