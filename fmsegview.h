@@ -5,9 +5,11 @@
 #include <QWidget>
 #include <QPaintEvent>
 #include <QMouseEvent>
+#include <QPoint>
 
 class FMSegViewPrivate;
 class FMSegView : public QWidget {
+	Q_OBJECT
 public:
 	friend class FMSegViewPrivate;
 	FMSegView();
@@ -19,6 +21,8 @@ public:
 	void setSelectionThreshold(float threshold);
 	Array2D getMask();
 	void refresh();
+signals:
+	void pointClicked(QPoint index);
 protected:
 	void paintEvent(QPaintEvent * event);
 	void mousePressEvent(QMouseEvent *event);

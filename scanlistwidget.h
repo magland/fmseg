@@ -14,6 +14,7 @@ public:
 	void setPath(const QString &path);
 	void refresh();
 	QString currentScanPath();
+	QStringList allScanPaths();
 private slots:
 	void slot_item_clicked();
 signals:

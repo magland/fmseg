@@ -146,6 +146,7 @@ void FMSegViewPrivate::on_mouse_click(QPoint index) {
 	float threshold=m_selection_threshold;
 	seg_update_mask(m_array_filtered,m_mask,index,threshold);
 	q->refresh();
+	emit q->pointClicked(index);
 }
 void FMSegViewPrivate::on_mouse_move(QPoint index) {
 	float threshold=m_selection_threshold;

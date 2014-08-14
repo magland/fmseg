@@ -66,8 +66,7 @@ int main(int argc, char *argv[])
 	*/
 	
 	FMSegWindow WW;
-	WW.setInputPath("/home/magland/data/fetalmri/MR");
-	WW.setOutputPath("/home/magland/data/fetalmri/masks");
+	WW.setSessionPath("/home/magland/wisdm/www/wisdmfileserver/files/fetalmri/sessions/SESSION1");
 	WW.refresh();
 	WW.show();
 	WW.resize(1000,600);

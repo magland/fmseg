@@ -10,8 +10,7 @@ public:
 	friend class FMSegWindowPrivate;
 	FMSegWindow();
 	virtual ~FMSegWindow();
-	void setInputPath(const QString &path);
-	void setOutputPath(const QString &path);
+	void setSessionPath(const QString &path);
 	void refresh();
 private slots:
 	void slot_scan_clicked();
@@ -19,6 +18,7 @@ private slots:
 	void slot_update();
 	void slot_compute();
 	void slot_clear_mask();
+	void slot_compile_results();
 private:
 	FMSegWindowPrivate *d;
 };

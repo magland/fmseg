@@ -8,12 +8,14 @@
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QLabel>
+#include <QTextEdit>
+#include "read_3d_array.h"
+#include "do_crop.h"
 
 class FMSegWindowPrivate {
 public:
 	FMSegWindow *q;
-	QString m_input_path;
-	QString m_output_path;
+	QString m_session_path;
 	ScanListWidget *m_SLW;
 	FMSegWidget *m_widget;
 	QLineEdit *m_window_max_edit;
@@ -57,13 +59,18 @@ FMSegWindow::FMSegWindow()
 		connect(BB,SIGNAL(clicked()),this,SLOT(slot_clear_mask()));
 		clayout->addWidget(BB);
 	}	
+	{
+		QPushButton *BB=new QPushButton("Compile Results");
+		connect(BB,SIGNAL(clicked()),this,SLOT(slot_compile_results()));
+		clayout->addWidget(BB);
+	}
 	clayout->addStretch();
 	controls->setLayout(clayout);	
 	
 	QVBoxLayout *left_layout=new QVBoxLayout;
 	left_layout->addWidget(d->m_SLW);
 	left_layout->addWidget(controls);
-	controls->setFixedHeight(200);
+	controls->setFixedHeight(250);
 	controls->setFixedWidth(200);
 	d->m_SLW->setFixedWidth(200);
 	
@@ -79,67 +86,59 @@ FMSegWindow::~FMSegWindow()
 {
 	delete d;
 }
-void FMSegWindow::setInputPath(const QString &path) {
-	d->m_input_path=path;
-}
-void FMSegWindow::setOutputPath(const QString &path) {
-	d->m_output_path=path;
+void FMSegWindow::setSessionPath(const QString &path) {
+	d->m_session_path=path;
 }
 void FMSegWindow::refresh() {
-	d->m_SLW->setPath(d->m_input_path);
+	d->m_SLW->setPath(d->m_session_path+"/scans");
 	d->m_SLW->refresh();
 	slot_update();
 }
 
-Array3D read_3d_array(const QString &path) {
-	Array3D X;
-	if ((QFileInfo(path).suffix()=="nii")||(QFileInfo(path).suffix()=="hdr")||(QFileInfo(path).suffix()=="img")) {
-		JNiftiImage2 NI;
-		NI.read(path);
-		X=NI.dataXYZ(0);
-	}
-	else if (QFileInfo(path).suffix()=="mda") {
-		X.read(path);
-	}
-	else {
-		qWarning() << "Unknown file type";
-	}
-	return X;
-}
-
 void FMSegWindow::slot_scan_clicked() {
 	QString path=d->m_SLW->currentScanPath();
+	QString mask_path=d->m_session_path+"/masks/"+QFileInfo(path).completeBaseName()+".mask.mda";
+	QString crop_path=d->m_session_path+"/crops/"+QFileInfo(path).completeBaseName()+".crop.mda";
+	
+	if (!QFile::exists(crop_path)) {
+		do_crop(path);
+		return;
+	}
 	
 	Array3D X,M;
-	X=read_3d_array(path);
+	X=read_3d_array(crop_path);
 	M.allocate(X.N1(),X.N2(),X.N3());
-	QString output_path=d->m_output_path+"/"+QFileInfo(path).completeBaseName()+".mask.mda";
-	if (QFile::exists(output_path)) {
-		M=read_3d_array(output_path);
+	
+	if (QFile::exists(mask_path)) {
+		M=read_3d_array(mask_path);
 	}
 	
 	d->m_widget->setArray(X);
 	d->m_widget->setMask(M);
 	d->m_widget->refresh();
 	d->m_widget->setProperty("input_path",path);
-	d->m_widget->setProperty("output_path",output_path);
+	d->m_widget->setProperty("mask_path",mask_path);
 	
 }
-void FMSegWindow::slot_compute() {
-	Array3D mask=d->m_widget->getMask();
+int compute_mask_count(const Array3D &mask) {
 	int count=0;
 	for (int z=0; z<mask.N3(); z++)
 	for (int y=0; y<mask.N2(); y++)
 	for (int x=0; x<mask.N1(); x++) {
 		if (mask.value(x,y,z)) count++;
 	}
+	return count;
+}
+void FMSegWindow::slot_compute() {
+	Array3D mask=d->m_widget->getMask();
+	int count=compute_mask_count(mask);
 	QMessageBox::information(0,"Compute",QString("Number of pixels in mask: %1").arg(count));
 }
 void FMSegWindow::slot_save() {
-	QString output_path=d->m_widget->property("output_path").toString();
+	QString mask_path=d->m_widget->property("mask_path").toString();
 	Array3D mask=d->m_widget->getMask();
-	mask.write(output_path);
-	QMessageBox::information(0,"Saved mask","Saved mask: "+output_path);
+	mask.write(mask_path);
+	QMessageBox::information(0,"Saved mask","Saved mask: "+mask_path);
 }
 void FMSegWindow::slot_update() {
 	double window_max=d->m_window_max_edit->text().toDouble();
@@ -152,5 +151,18 @@ void FMSegWindow::slot_clear_mask() {
 	mask.allocate(mask.N1(),mask.N2(),mask.N3());
 	d->m_widget->setMask(mask);
 	d->m_widget->refresh();
+}
+void FMSegWindow::slot_compile_results() {
+	QString txt="Scan,Pixel Count\n";
+	QStringList paths=d->m_SLW->allScanPaths();
+	for (int i=0; i<paths.count(); i++) {
+		QString mask_path=d->m_session_path+"/masks/"+QFileInfo(paths[i]).completeBaseName()+".mask.mda";
+		Array3D mask=read_3d_array(mask_path);
+		int count0=compute_mask_count(mask);
+		txt+=QString("%1,%2\n").arg(QFileInfo(paths[i]).completeBaseName()).arg(count0);
+	}
+	QTextEdit *EE=new QTextEdit;
+	EE->setText(txt);
+	EE->show();
 }
 

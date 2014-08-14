@@ -41,3 +41,11 @@ QString ScanListWidget::currentScanPath() {
 	if (!it) return "";
 	return it->data(0,Qt::UserRole).toString();
 }
+QStringList ScanListWidget::allScanPaths() {
+	QStringList ret;
+	for (int i=0; i<topLevelItemCount(); i++) {
+		QTreeWidgetItem *it=topLevelItem(i);
+		ret << it->data(0,Qt::UserRole).toString();
+	}
+	return ret;
+}
