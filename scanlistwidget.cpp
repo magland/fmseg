@@ -25,11 +25,11 @@ void ScanListWidget::setPath(const QString &path) {
 void ScanListWidget::refresh() {
 	clear();
 	setHeaderLabels(QStringList("Scans"));
-	QStringList file_list=QDir(d->m_path).entryList(QStringList("*"),QDir::Files,QDir::Name);
-	foreach (QString file,file_list) {
+	QStringList folder_list=QDir(d->m_path+"/acquisitions").entryList(QStringList("*"),QDir::Dirs|QDir::NoDotAndDotDot,QDir::Name);
+	foreach (QString folder,folder_list) {
 		QTreeWidgetItem *it=new QTreeWidgetItem;
-		it->setText(0,file);
-		it->setData(0,Qt::UserRole,d->m_path+"/"+file);
+		it->setText(0,folder);
+		it->setData(0,Qt::UserRole,d->m_path+"/acquisitions/"+folder);
 		addTopLevelItem(it);
 	}
 }

@@ -3,9 +3,19 @@
 #include "fmsegview.h"
 #include <QFileInfo>
 #include <QDebug>
+#include <QDir>
+
+QString find_scan_file_path(const QString &scan_path) {
+	QStringList filter; filter << "*.nii" << "*.mda";
+	QStringList list=QDir(scan_path+"/files").entryList(filter,QDir::Files,QDir::Name);
+	return scan_path+"/files/"+list.value(0);
+}
 
 void do_crop(const QString &scan_path) {
-	Array3D X=read_3d_array(scan_path);
+	QString scan_file_path=find_scan_file_path(scan_path);
+	qDebug() << "scan_file_path=" << scan_file_path;
+	Array3D X=read_3d_array(scan_file_path);
+	X.scaleBy(500.0/X.max());
 	
 	Array2D X0=X.dataXY(X.N3()/2);
 	FMSegView *W=new FMSegView;
@@ -37,10 +47,12 @@ Array3D do_the_crop(const Array3D &X,QPoint index,int M1,int M2) {
 void do_crop_object::slot_point_clicked(QPoint index) {
 	QString session_path=QFileInfo(QFileInfo(scan_path).path()).path();	
 	
-	Array3D X=read_3d_array(scan_path);
+	QString scan_file_path=find_scan_file_path(scan_path);
+	Array3D X=read_3d_array(scan_file_path);
 	Array3D CC=do_the_crop(X,index,128,128);
-	QString crop_path=session_path+"/crops/"+QFileInfo(scan_path).completeBaseName()+".crop.mda";
-	qDebug() << "Writing..." << crop_path;
+	QDir(scan_path).mkdir("attachments");
+	QString crop_path=scan_path+"/attachments/crop.mda";
+	qDebug()  << "Writing..." << crop_path;
 	CC.write(crop_path);
 	
 	//to migrate the old stuff -- to be removed later

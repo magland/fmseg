@@ -71,8 +71,8 @@ FMSegWindow::FMSegWindow()
 	left_layout->addWidget(d->m_SLW);
 	left_layout->addWidget(controls);
 	controls->setFixedHeight(250);
-	controls->setFixedWidth(200);
-	d->m_SLW->setFixedWidth(200);
+	controls->setFixedWidth(300);
+	d->m_SLW->setFixedWidth(300);
 	
 	QHBoxLayout *layout=new QHBoxLayout;
 	layout->addLayout(left_layout);
@@ -90,15 +90,15 @@ void FMSegWindow::setSessionPath(const QString &path) {
 	d->m_session_path=path;
 }
 void FMSegWindow::refresh() {
-	d->m_SLW->setPath(d->m_session_path+"/scans");
+	d->m_SLW->setPath(d->m_session_path);
 	d->m_SLW->refresh();
 	slot_update();
 }
 
 void FMSegWindow::slot_scan_clicked() {
 	QString path=d->m_SLW->currentScanPath();
-	QString mask_path=d->m_session_path+"/masks/"+QFileInfo(path).completeBaseName()+".mask.mda";
-	QString crop_path=d->m_session_path+"/crops/"+QFileInfo(path).completeBaseName()+".crop.mda";
+	QString mask_path=path+"/attachments/mask.mda";
+	QString crop_path=path+"/attachments/crop.mda";
 	
 	if (!QFile::exists(crop_path)) {
 		do_crop(path);
@@ -107,6 +107,7 @@ void FMSegWindow::slot_scan_clicked() {
 	
 	Array3D X,M;
 	X=read_3d_array(crop_path);
+	X.scaleBy(500.0/X.max());
 	M.allocate(X.N1(),X.N2(),X.N3());
 	
 	if (QFile::exists(mask_path)) {
@@ -156,8 +157,9 @@ void FMSegWindow::slot_compile_results() {
 	QString txt="Scan,Pixel Count\n";
 	QStringList paths=d->m_SLW->allScanPaths();
 	for (int i=0; i<paths.count(); i++) {
-		QString mask_path=d->m_session_path+"/masks/"+QFileInfo(paths[i]).completeBaseName()+".mask.mda";
+		QString mask_path=paths[i]+"/attachments/mask.mda";
 		Array3D mask=read_3d_array(mask_path);
+		qDebug() << mask.N1() << mask.N2() << mask.N3();
 		int count0=compute_mask_count(mask);
 		txt+=QString("%1,%2\n").arg(QFileInfo(paths[i]).completeBaseName()).arg(count0);
 	}

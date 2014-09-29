@@ -111,10 +111,14 @@ void FMSegView::mouseMoveEvent(QMouseEvent *event) {
 	setFocus(Qt::MouseFocusReason);
 }
 
+void FMSegView::leaveEvent(QEvent *event) {
+	d->on_mouse_move(QPoint(-1,-1));
+}
+
 QColor FMSegViewPrivate::get_color(float X) {
 	float wmin=m_window_min;;
 	float wmax=m_window_max;
-	float val=abs(X);
+	float val=qAbs(X);
 	int hold=0;
 	if (wmin==wmax) {
 		if (val<wmin) hold=0;

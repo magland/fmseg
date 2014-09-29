@@ -14,6 +14,8 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QStringList>
+#include <QFileDialog>
+#include <QSettings>
 
 ///////////////////////////////// ** ////////////////////////////////////
 int main(int argc, char *argv[])
@@ -65,8 +67,15 @@ int main(int argc, char *argv[])
 	W.move(100,100);
 	*/
 	
+	QSettings settings("magland","fmset");
+	QString last_session_path=settings.value("last_session_path").toString();;
+	QString session_path=QFileDialog::getExistingDirectory(0,"Choose session folder:",last_session_path);
+	if (session_path.isEmpty()) return 0;
+	settings.setValue("last_session_path",session_path);
+	
 	FMSegWindow WW;
-	WW.setSessionPath("/home/magland/wisdm/www/wisdmfileserver/files/fetalmri/sessions/SESSION1");
+	//WW.setSessionPath("/home/magland/wisdm/www/wisdmfileserver/files/fetalmri/sessions/SESSION1");
+	WW.setSessionPath(session_path);
 	WW.refresh();
 	WW.show();
 	WW.resize(1000,600);

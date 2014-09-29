@@ -87,6 +87,8 @@ void FMSegWidget::refresh() {
 		W->setMinimumSize(512,512);
 		d->m_views << W;
 	}
+	d->m_XZ_view->setWindowRange(d->m_window_min,d->m_window_max);
+	d->m_YZ_view->setWindowRange(d->m_window_min,d->m_window_max);
 }
 void FMSegWidget::resizeEvent(QResizeEvent *event) {
 	
@@ -111,6 +113,8 @@ void FMSegWidget::setWindowRange(float min,float max) {
 	for (int z=0; z<d->m_views.count(); z++) {
 		d->m_views[z]->setWindowRange(d->m_window_min,d->m_window_max);
 	}
+	d->m_XZ_view->setWindowRange(d->m_window_min,d->m_window_max);
+	d->m_YZ_view->setWindowRange(d->m_window_min,d->m_window_max);
 }
 
 void FMSegWidget::setSelectionThreshold(float threshold) {

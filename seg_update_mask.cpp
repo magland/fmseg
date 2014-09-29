@@ -60,6 +60,7 @@ Array2D compute_distance_map(const Array2D &X,int x0,int y0,int rad) {
 
 
 void seg_update_mask(const Array2D &array,Array2D &mask,QPoint point,float threshold) {
+	if (point.x()<0) return;
 	Array2D DT=compute_distance_map(array,point.x(),point.y(),30);
 	for (int y=0; y<mask.N2(); y++)
 	for (int x=0; x<mask.N1(); x++) {
